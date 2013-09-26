@@ -31,6 +31,16 @@ body {
   border-right: 1px solid #f3f3f3;
 }
 
+a {
+  text-decoration: none;
+  color: #cc3300;
+}
+
+a.active {
+  font-weight: bold;
+  color: #ee3300;
+}
+
 #controls li:last-child {
   border-right: none;
 }

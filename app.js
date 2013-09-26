@@ -65,9 +65,13 @@ angular.module('videoFun', [])
 
           (function derp() {
             var frame = videoProvider.getFrame();
-            (scope.filters || []).forEach(function(filter) {
-              frame = filter.func(frame);
-            });
+
+            if (scope.filters) {
+              var filters = (scope.filters instanceof Array ? scope.filters : [scope.filters]);
+              filters.forEach(function(filter) {
+                frame = filter.func(frame);
+              });
+            }
 
             ctx.putImageData(frame, 0, 0);
             window.requestAnimationFrame(derp);
@@ -84,9 +88,11 @@ angular.module('videoFun', [])
       return 0.299 * r + 0.587 * g + 0.114 * b;
     }
 
-    $scope.activeFilters = [];
-
     $scope.filters = [
+      {
+        name: 'none',
+        func: function(d) { return d; }
+      },
       {
         name: 'inverse',
         func: function(imgData) {
@@ -145,6 +151,12 @@ angular.module('videoFun', [])
         }
       }
     ];
+
+    $scope.activeFilter = $scope.filters[0];
+
+    $scope.setFilter = function(f) {
+      $scope.activeFilter = f;
+    };
 
     window.scope = $scope;
   });
