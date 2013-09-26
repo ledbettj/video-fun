@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+    <button style="z-index: 500; position: fixed; right: 12px; top: 12px;" onclick="window.app.snapshot()">
+      Snapshot
+    </button>
+    <canvas id="e"></canvas>
+    <script src="app.js"></script>
+    <script>
+      (function() {
+        var ele = document.getElementById('e');
+        var app = new App(ele);
+
+        window.onresize = app.resize.bind(app);
+
+        app.run();
+        window.app = app;
+      })();
+    </script>
+  </body>
+</html>
