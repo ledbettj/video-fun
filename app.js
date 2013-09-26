@@ -89,17 +89,24 @@
     this.e = element;
     this.b = document.createElement('canvas');
     this.v = document.createElement('video');
+
+    this.v.addEventListener('loadedmetadata', function() {
+      this.b.width  = this.e.width  = this.v.videoWidth;
+      this.b.height = this.e.height = this.v.videoHeight;
+
+      this.e.style.width  = this.e.width + 'px';
+      this.e.style.height = this.e.height + 'px';
+
+    }.bind(this));
+
+    this.bctx = this.b.getContext('2d');
+    this.ctx  = this.e.getContext('2d');
+
     this.filters = [window.filters.obama];
     this.resize();
   };
 
-  App.prototype.resize = function() {
-    this.b.width  = this.v.width  = this.e.width  = this.e.clientWidth;
-    this.b.height = this.v.height = this.e.height = this.e.clientHeight;
-
-    this.bctx = this.b.getContext('2d');
-    this.ctx  = this.e.getContext('2d');
-  };
+  App.prototype.resize = function() {};
 
 
   App.prototype.run = function() {

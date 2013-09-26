@@ -5,9 +5,14 @@
     <link rel="stylesheet" href="main.css">
   </head>
   <body>
-    <button style="z-index: 500; position: fixed; right: 12px; top: 12px;" onclick="window.app.snapshot()">
-      Snapshot
-    </button>
+    <ul id="controls">
+      <li>
+        <button onclick="window.app.snapshot()"> Snapshot </button>
+      </li>
+      <li>
+        <button onclick="window.app.filters=[filters.sepia]">Sepia</button>
+      </li>
+    </ul>
     <canvas id="e"></canvas>
     <script src="app.js"></script>
     <script>
