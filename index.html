@@ -1,30 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="videoFun">
   <head>
     <title></title>
     <link rel="stylesheet" href="main.css">
   </head>
-  <body>
+  <body ng-controller="MainCtrl">
     <ul id="controls">
-      <li>
-        <button onclick="window.app.snapshot()"> Snapshot </button>
+      <li ng-repeat="f in filters">
+        <a href ng-click="activeFilters.push(f)">+ {{f.name}}</a>
       </li>
-      <li>
-        <button onclick="window.app.filters=[filters.sepia]">Sepia</button>
+      <li ng-repeat="f in activeFilters track by $index">
+        <a href ng-click="activeFilters.splice($index, 1)">- {{f.name}}</a>
       </li>
     </ul>
-    <canvas id="e"></canvas>
+    <canvas id="e" video-out width="640" height="480" filters="activeFilters">
+    </canvas>
+    <script src="angular.js"></script>
     <script src="app.js"></script>
-    <script>
-      (function() {
-        var ele = document.getElementById('e');
-        var app = new App(ele);
-
-        window.onresize = app.resize.bind(app);
-
-        app.run();
-        window.app = app;
-      })();
-    </script>
   </body>
 </html>
