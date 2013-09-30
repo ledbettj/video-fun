@@ -107,6 +107,10 @@ angular.module('videoFun', [])
           $timeout.cancel(scope.timeout);
         });
 
+        elem.bind('click', function() {
+          window.open(elem[0].toDataURL());
+        });
+
       }
     };
   })
