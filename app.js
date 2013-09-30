@@ -2,11 +2,27 @@
 /* global angular */
 
 angular.module('videoFun', [])
+  .config(function() {
+    /* prepare for cross browseration */
+    window.URL = window.URL       ||
+                 window.mozURL    ||
+                 window.webkitURL;
+
+    window.requestAnimationFrame = window.requestAnimationFrame    ||
+                                   window.mozRequestAnimationFrame ||
+                                   window.webkitRequestAnimationFrame;
+
+    navigator.getUserMedia = navigator.getUserMedia    ||
+                             navigator.mozGetUserMedia ||
+                             navigator.webkitGetUserMedia;
+  })
+
   .factory('videoProvider', function($q) {
+
     var vid = document.createElement('video');
     var can = document.createElement('canvas');
     var ctx = can.getContext('2d');
-    var capturing = true;
+    var capturing = false;
 
     vid.addEventListener('loadedmetadata', function() {
       can.width  = vid.videoWidth;
@@ -28,12 +44,21 @@ angular.module('videoFun', [])
     }
 
     return {
+      isCapturing: function() {
+        return capturing;
+      },
       startCapture: function() {
         var d = $q.defer();
-        navigator.webkitGetUserMedia({video: true}, function(stream) {
+
+        if (capturing) {
+          d.resolve();
+          return d.promise;
+        }
+
+        navigator.getUserMedia({video: true}, function(stream) {
+          capturing = true;
           vid.src = window.URL.createObjectURL(stream);
           vid.play();
-          capturing = true;
           window.requestAnimationFrame(onFrame);
           d.resolve();
         }, function() {
@@ -53,37 +78,40 @@ angular.module('videoFun', [])
     };
 
   })
+
   .directive('videoOut', function(videoProvider, $timeout) {
     return {
       replace: false,
       scope: {
-        filters: '='
+        filters: '=',
+        interval: '='
       },
       link: function(scope, elem, attrs) {
         var ctx = elem[0].getContext('2d');
-        videoProvider.startCapture().then(function() {
 
-          (function derp() {
-            var frame = videoProvider.getFrame();
+        (function renderFrame() {
+          var frame = videoProvider.getFrame();
 
-            if (scope.filters) {
-              var filters = (scope.filters instanceof Array ? scope.filters : [scope.filters]);
-              filters.forEach(function(filter) {
-                frame = filter.func(frame);
-              });
-            }
+          if (scope.filters) {
+            var filters = (scope.filters instanceof Array ? scope.filters : [scope.filters]);
+            filters.forEach(function(filter) {
+              frame = filter.func(frame);
+            });
+          }
 
-            ctx.putImageData(frame, 0, 0);
-            window.requestAnimationFrame(derp);
-          })();
+          ctx.putImageData(frame, 0, 0);
+          scope.timeout = $timeout(renderFrame, scope.interval || 10);
+        })();
 
+        scope.$on('$destroy', function() {
+          $timeout.cancel(scope.timeout);
         });
-      },
 
+      }
     };
   })
 
-  .controller('MainCtrl', function($scope) {
+  .controller('MainCtrl', function($scope, videoProvider) {
     function lum(r, g, b) {
       return 0.299 * r + 0.587 * g + 0.114 * b;
     }
@@ -157,6 +185,9 @@ angular.module('videoFun', [])
     $scope.setFilter = function(f) {
       $scope.activeFilter = f;
     };
+
+    $scope.interval = 10;
+    $scope.video = videoProvider;
 
     window.scope = $scope;
   });

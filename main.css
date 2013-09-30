@@ -44,3 +44,8 @@ a.active {
 #controls li:last-child {
   border-right: none;
 }
+
+#start-button {
+  margin: 32px auto;
+  display: block;
+}

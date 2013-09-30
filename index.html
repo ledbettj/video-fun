@@ -6,11 +6,25 @@
   </head>
   <body ng-controller="MainCtrl">
     <ul id="controls">
+      <li>
+        Filter:
+      </li>
       <li ng-repeat="f in filters">
-        <a href ng-click="setFilter(f)" ng-class="{active: (f == activeFilter)}">{{f.name}}</a>
+        <a href ng-click="setFilter(f)" ng-class="{active: (f == activeFilter)}">
+          {{f.name}}
+        </a>
+      </li>
+      <li>
+        Refresh Interval (ms):
+      </li>
+      <li>
+        <input type="number" min="10" ng-model="interval">
       </li>
     </ul>
-    <canvas id="e" video-out width="640" height="480" filters="activeFilter">
+    <button ng-if="!video.isCapturing()" ng-click="video.startCapture()" id="start-button">
+      Start Capture
+    </button>
+    <canvas id="e" video-out width="640" height="480" filters="activeFilter" interval="interval">
     </canvas>
     <script src="angular.js"></script>
     <script src="app.js"></script>
