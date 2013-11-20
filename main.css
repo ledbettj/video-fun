@@ -52,7 +52,7 @@ a.active {
 }
 
 #start-button {
-  margin: 32px auto;
+  margin: 128px auto;
   display: block;
 }
 
@@ -65,6 +65,7 @@ a.active {
 .options {
   padding: 4px 16px;
   background: rgba(0, 0, 0, 0.75);
+  color: #999;
   width: 100%;
   border-bottom: 1px solid #f3f3f3;
   position: absolute;

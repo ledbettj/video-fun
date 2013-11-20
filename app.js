@@ -1,4 +1,4 @@
-/* jshint browser:true */
+/* jshint browser:true, undef:true */
 /* global angular */
 
 angular.module('videoFun', [])
@@ -15,6 +15,22 @@ angular.module('videoFun', [])
     navigator.getUserMedia = navigator.getUserMedia    ||
                              navigator.mozGetUserMedia ||
                              navigator.webkitGetUserMedia;
+  })
+
+  .directive('numericInput', function(){
+    return {
+      require: 'ngModel',
+      link: function(scope, ele, attr, ctrl){
+        ctrl.$parsers.push(function(viewValue){
+          if (viewValue instanceof Array) {
+            return viewValue.map(parseFloat);
+          } else {
+            var v = parseFloat(viewValue);
+            return isNaN(v) ? null : v;
+          }
+        });
+      }
+    };
   })
 
   .directive('rgbPicker', function() {
@@ -162,9 +178,10 @@ angular.module('videoFun', [])
           var len = d.length;
 
           for(var i = 0; i < len; i += 4) {
-            d[i + 0] = Math.min(255, d[i] * 0.393 + d[i + 1] * 0.769 + d[i + 2] * 0.189);
-            d[i + 1] = Math.min(255, d[i] * 0.349 + d[i + 1] * 0.686 + d[i + 2] * 0.168);
-            d[i + 2] = Math.min(255, d[i] * 0.272 + d[i + 1] * 0.534 + d[i + 2] * 0.131);
+            var p = [d[i], d[i + 1], d[i +2]];
+            d[i + 0] = Math.min(255, p[0] * 0.393 + p[1] * 0.769 + p[2] * 0.189);
+            d[i + 1] = Math.min(255, p[0] * 0.349 + p[1] * 0.686 + p[2] * 0.168);
+            d[i + 2] = Math.min(255, p[0] * 0.272 + p[1] * 0.534 + p[2] * 0.131);
           }
 
           return imgData;
@@ -215,6 +232,59 @@ angular.module('videoFun', [])
           }
 
           return imgData;
+        }
+      },
+      {
+        name: 'convolute',
+        func: function(imgData) {
+          var weights = this.options.weights.values;
+
+          var side = Math.round(Math.sqrt(weights.length));
+          var halfSide = Math.floor(side / 2);
+          var src = imgData.data,
+              sw  = imgData.width,
+              sh  = imgData.height;
+
+          var d = [];
+
+          for (var y = 0; y < sh; y++) {
+            for (var x = 0; x < sw; x++) {
+              var sy = y;
+              var sx = x;
+              var r = 0, g = 0, b = 0;
+
+              for (var cy = 0; cy < side; cy++) {
+                for (var cx = 0; cx < side; cx++) {
+                  var scy = sy + cy - halfSide;
+                  var scx = sx + cx - halfSide;
+                  if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
+                    var srcOff = (scy * sw + scx) * 4;
+                    var wt = weights[cy * side + cx];
+                    r += src[srcOff]   * wt;
+                    g += src[srcOff+1] * wt;
+                    b += src[srcOff+2] * wt;
+                  }
+                }
+              }
+
+              d.push(r);
+              d.push(g);
+              d.push(b);
+              d.push(255);
+            }
+          }
+
+          for(var i = 0; i < d.length; ++i) {
+            imgData.data[i] = d[i];
+          }
+
+          return imgData;
+        },
+        options: {
+          weights: {
+            type: 'num-list',
+            values: [0, -1, 0, -1, 5, -1, 0, -1, 0]
+          }
         }
       }
     ];
