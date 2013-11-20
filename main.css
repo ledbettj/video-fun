@@ -17,6 +17,11 @@ body {
   cursor: pointer;
 }
 
+.rgb-picker {
+  border: 2px solid transparent;
+  max-width: 400px;
+}
+
 #controls {
   background: #f7f7f7;
   border-bottom: 1px solid #f3f3f3;
@@ -55,4 +60,16 @@ a.active {
   font-size: 11px;
   color: #999;
   text-align: center;
+}
+
+.options {
+  padding: 4px 16px;
+  background: rgba(0, 0, 0, 0.75);
+  width: 100%;
+  border-bottom: 1px solid #f3f3f3;
+  position: absolute;
+}
+
+.option-item {
+  padding-left: 24px;
 }

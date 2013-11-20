@@ -17,6 +17,21 @@ angular.module('videoFun', [])
                              navigator.webkitGetUserMedia;
   })
 
+  .directive('rgbPicker', function() {
+    return {
+      scope: {
+        rgbPicker: '='
+      },
+      replace: true,
+      template: '<div class="rgb-picker" ng-style="{\'border-color\': myColor(), background: myColor()}"><input type="number" ng-min="0" ng-max="255" ng-model="rgbPicker[0]"><input type="number" ng-model="rgbPicker[1]" ng-min="0" ng-max="255" ><input type="number" ng-model="rgbPicker[2]" ng-min="0" ng-max="255" ></div>',
+      controller: ['$scope', function($scope) {
+        $scope.myColor = function() {
+          return 'rgb(' + $scope.rgbPicker.join(',') + ')';
+        };
+      }]
+    };
+  })
+
   .factory('videoProvider', function($q) {
 
     var vid = document.createElement('video');
@@ -160,13 +175,7 @@ angular.module('videoFun', [])
         func: function(imgData) {
           var d   = imgData.data;
           var len = d.length;
-          var c   = [
-            [29, 82, 97],
-            [86, 151, 163],
-            [245, 255, 201],
-            [161, 30, 34],
-            [97, 10, 29]
-          ];
+          var c   = this.options.colors.values;
 
           for(var i = 0; i < len; i += 4) {
             var bright = lum(d[i], d[i + 1], d[i + 2]);
@@ -180,14 +189,46 @@ angular.module('videoFun', [])
             }
           }
           return imgData;
+        },
+        options: {
+          colors: {
+            type: 'rgb-list',
+            values: [
+              [29, 82, 97],
+              [86, 151, 163],
+              [245, 255, 201],
+              [161, 30, 34],
+              [97, 10, 29]
+            ]
+          }
+        }
+      },
+      {
+        name: 'grayscale',
+        func: function(imgData) {
+          var d   = imgData.data;
+          var len = d.length;
+
+          for(var i = 0; i < len; i += 4) {
+            var avg = Math.round((d[i] + d[i + 2] + d[i + 3]) / 3);
+            d[i] = d[i + 1] = d[i + 2] = avg;
+          }
+
+          return imgData;
         }
       }
     ];
 
-    $scope.activeFilter = $scope.filters[0];
+    $scope.activeFilter = [$scope.filters[0]];
 
     $scope.setFilter = function(f) {
-      $scope.activeFilter = f;
+      $scope.activeFilter[0] = f;
+    };
+
+    $scope.isActiveFilter = function(f) {
+      return $scope.activeFilter == f ||
+        (($scope.activeFilter instanceof Array) &&
+         ($scope.activeFilter.indexOf(f) !== -1));
     };
 
     $scope.interval = 10;

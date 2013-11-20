@@ -3,6 +3,8 @@
   <head>
     <title></title>
     <link rel="stylesheet" href="main.css">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
   </head>
   <body ng-controller="MainCtrl">
     <ul id="controls">
@@ -10,7 +12,7 @@
         Filter:
       </li>
       <li ng-repeat="f in filters">
-        <a href ng-click="setFilter(f)" ng-class="{active: (f == activeFilter)}">
+        <a href ng-click="setFilter(f)" ng-class="{active: isActiveFilter(f)}">
           {{f.name}}
         </a>
       </li>
@@ -21,13 +23,38 @@
         <input type="number" min="10" ng-model="interval">
       </li>
     </ul>
+    <div class="options" ng-repeat="f in activeFilter" ng-show="f.options">
+      <div>
+        <h3>
+          <a ng-click="f.expanded = !f.expanded" href>
+            <i class="fa fa-fw" ng-class="{'fa-caret-right': !f.expanded, 'fa-caret-down': f.expanded}"></i>
+            {{f.name}} options
+          </a>
+        </h3>
+      </div>
+
+      <div ng-show="f.expanded">
+        <div ng-repeat="(k,v) in f.options" class="option-item">
+          <strong>{{k}}</strong>
+          <div ng-switch="v.type">
+
+            <div ng-switch-when="rgb-list">
+              <div ng-repeat="(i,c) in v.values" rgb-picker="v.values[i]"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
     <button ng-if="!video.isCapturing()" ng-click="video.startCapture()" id="start-button">
       Start Capture
     </button>
-    <canvas id="e" video-out width="640" height="480" filters="activeFilter" interval="interval">
-    </canvas>
-    <div class="helpful">
-      click on the image to take a snapshot
+    <div ng-show="video.isCapturing()">
+      <canvas id="e" video-out width="640" height="480" filters="activeFilter" interval="interval">
+      </canvas>
+      <div class="helpful">
+        click on the image to take a snapshot
+      </div>
     </div>
     <script src="angular.js"></script>
     <script src="app.js"></script>
