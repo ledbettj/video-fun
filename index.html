@@ -50,16 +50,44 @@
         </div>
       </div>
     </div>
-    <button ng-if="!video.isCapturing()" ng-click="video.startCapture()" id="start-button">
-      Start Capture
-    </button>
+    <div ng-if="!video.isCapturing()">
+      <div class="warning">
+        <ul>
+          <li ng-repeat="s in ['video', 'getusermedia', 'webworkers']" ng-class="{bad: !supports[s]}">
+            <i class="fa fa-fw"
+               ng-class="{'fa-check': supports[s], 'fa-times': !supports[s]}"></i> {{s}}
+          </li>
+          <li>
+            <button ng-click="video.startCapture()" id="start-button">
+              Start Capture
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
     <div ng-show="video.isCapturing()">
-      <canvas id="e" video-out width="640" height="480" filters="activeFilter" interval="interval">
+      <canvas id="e" video-out width="640" height="480" filters="activeFilter" interval="interval"
+              record="recording", record-complete="allDone(blob)"
+              record-progress="encodePercent = percent">
       </canvas>
       <div class="helpful">
         click on the image to take a snapshot
       </div>
+      <div class="helpful">
+        <button disabled="disabled" ng-show="rendering">
+          <i class="fa fa-spin fa-spinner"></i> Encoding... {{encodePercent}}%
+        </button>
+        <button ng-click="startRecording()" ng-show="!recording && !rendering">
+          <i class="fa fa-fw fa-play"></i> Record GIF
+        </button>
+        <button ng-click="stopRecording()" ng-show="recording">
+          <i class="fa fa-fw fa-stop"></i> Stop
+        </button>
+      </div>
     </div>
+    <script src="modernizr.js"></script>
+    <script src="gif.js"></script>
+    <script src="gif.worker.js"></script>
     <script src="angular.js"></script>
     <script src="app.js"></script>
   </body>

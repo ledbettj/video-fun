@@ -1,5 +1,5 @@
 /* jshint browser:true, undef:true */
-/* global angular */
+/* global angular, Modernizr */
 
 angular.module('videoFun', [])
   .config(function() {
@@ -16,7 +16,7 @@ angular.module('videoFun', [])
                              navigator.mozGetUserMedia ||
                              navigator.webkitGetUserMedia;
   })
-
+  .factory('Modernizr', function() { return Modernizr; })
   .directive('numericInput', function(){
     return {
       require: 'ngModel',
@@ -98,6 +98,9 @@ angular.module('videoFun', [])
         return d.promise;
       },
 
+      width: function()  { return can.width; },
+      height: function() { return can.height; },
+
       getFrame: function() {
         return ctx.getImageData(0, 0, can.width, can.height);
       },
@@ -115,10 +118,14 @@ angular.module('videoFun', [])
       replace: false,
       scope: {
         filters: '=',
-        interval: '='
+        interval: '=',
+        record: '=',
+        recordComplete: '&',
+        recordProgress: '&'
       },
       link: function(scope, elem, attrs) {
         var ctx = elem[0].getContext('2d');
+        var gif;
 
         (function renderFrame() {
           var frame = videoProvider.getFrame();
@@ -131,6 +138,11 @@ angular.module('videoFun', [])
           }
 
           ctx.putImageData(frame, 0, 0);
+
+          if (scope.record) {
+            gif.addFrame(frame, {delay: scope.interval || 10});
+          }
+
           scope.timeout = $timeout(renderFrame, scope.interval || 10);
         })();
 
@@ -142,14 +154,37 @@ angular.module('videoFun', [])
           window.open(elem[0].toDataURL());
         });
 
+        scope.$watch('record', function(v) {
+          if (v) {
+            gif = new GIF({ workers: 2, quality: 10 });
+            gif.on('finished', function(blob) {
+              scope.$apply(function() {
+                scope.recordComplete({blob: blob});
+              });
+            });
+            gif.on('progress', function(p) {
+              scope.$apply(function() {
+                scope.recordProgress({ percent: Math.round(p * 100) });
+              });
+            });
+          } else {
+            if (gif) {
+              gif.render();
+              gif = null;
+            }
+          }
+        });
+
       }
     };
   })
 
-  .controller('MainCtrl', function($scope, videoProvider) {
+  .controller('MainCtrl', function($scope, videoProvider, Modernizr) {
     function lum(r, g, b) {
       return 0.299 * r + 0.587 * g + 0.114 * b;
     }
+
+    $scope.supports = Modernizr;
 
     $scope.filters = [
       {
@@ -304,5 +339,21 @@ angular.module('videoFun', [])
     $scope.interval = 10;
     $scope.video = videoProvider;
 
-    window.scope = $scope;
+    $scope.recording = false;
+
+    $scope.startRecording = function() {
+      $scope.recording = true;
+      $scope.encodePercent = 0;
+    };
+
+    $scope.stopRecording = function() {
+      $scope.recording = false;
+      $scope.rendering = true;
+    };
+
+    $scope.allDone = function(blob) {
+      $scope.rendering = false;
+      window.open(URL.createObjectURL(blob));
+    };
+
   });
